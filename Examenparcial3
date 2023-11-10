@@ -1,0 +1,95 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define COLUM 3002
+#define FILAS 50
+#define LONGITUD 23240
+#define LONGITUD_MAXIMA 100
+
+int main() {
+    FILE *archivo_csv = fopen("emails.csv", "r");
+    if (!archivo_csv) {
+        perror("Error al abrir el archivo csv");
+        return 1;
+    }
+
+    char lin[LONGITUD];
+    int contp[COLUM] = {0};
+    char nompl[COLUM][LONGITUD_MAXIMA];
+    int fi = 182060 % 1000; 
+    int fa = 0;
+
+    
+    if (fgets(lin, sizeof(lin), archivo_csv)) {
+        int columna = 0;
+        int inp = 0;
+        
+        for (int i = 0; lin[i] != '\0' && columna < COLUM; ++i) {
+            
+            if (lin[i] == ',' || lin[i] == '\n') {
+                nompl[columna][inp] = '\0';
+                columna++;
+                inp = 0;
+            } else if (lin[i] != '\r') { 
+                nompl[columna][inp++] = lin[i];
+                
+                if (inp == LONGITUD_MAXIMA - 1) {
+                    nompl[columna][inp] = '\0';
+                    columna++;
+                    inp = 0;
+                }
+            }
+        }
+    } else {
+        perror("Error al leer la primera línea de archivo");
+        fclose(archivo_csv);
+        return 1;
+    }
+
+    while (fa < fi && fgets(lin, sizeof(lin), archivo_csv)) {
+        fa++;
+    }
+
+    
+    while (fa < fi + FILAS && fgets(lin, sizeof(lin), archivo_csv)) {
+        int columna = 0;
+        int ival = 0;
+        char vact[LONGITUD_MAXIMA] = {0};
+
+        for (int i = 0; lin[i] != '\0' && columna < COLUM; ++i) {
+            if (lin[i] == ',' || lin[i] == '\n') {
+                vact[ival] = '\0';
+                contp[columna] += atoi(vact);
+                columna++;
+                ival = 0;
+            } else if (lin[i] != '\r') {
+                vact[ival++] = lin[i];
+                if (ival == LONGITUD_MAXIMA - 1) {
+                    vact[ival] = '\0';
+                    contp[columna] += atoi(vact);
+                    columna++;
+                    ival = 0;
+                }
+            }
+        }
+        fa++;
+    }
+
+    fclose(archivo_csv);
+
+    
+    FILE *archivo_salida = fopen("182060.txt", "w");
+    if (!archivo_salida) {
+        perror("Error al abrir el archivo de salida");
+        return 1;
+    }
+
+    for (int i = 0; i < COLUM; i++) {
+        fprintf(archivo_salida, "%s, %d\n", nompl[i], contp[i]);
+    }
+
+    fclose(archivo_salida);
+    printf("El conteo se encuentra en el archivo 182060.txt\n");
+
+    return 0;
+}
